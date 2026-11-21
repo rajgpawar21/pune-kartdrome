@@ -2,6 +2,8 @@
 
 An etched-style vector sketch of Pune Kartdrome traced from a satellite image, with a minimum-curvature racing line through all 13 corners.
 
+Link - https://rajgpawar21.github.io/pune-kartdrome/
+
 Open `index.html` in a browser (it is self-contained). Toggle Sketch/Satellite, racing line, centerline and corner numbers. Pick a corner to see turn-in, apex, exit and braking. To host it, enable GitHub Pages on this repo (Settings, Pages, deploy from branch, root).
 
 ## Results
