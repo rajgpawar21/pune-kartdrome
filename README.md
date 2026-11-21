@@ -9,8 +9,9 @@ Open `index.html` in a browser (it is self-contained). Switch the direction of t
 ## Results
 
 - 12 corners in either direction: 7 right and 5 left clockwise, 5 right and 7 left counterclockwise
-- Lap length about 645 m (derived from the assumed width, not measured); model lap about 47.4 s clockwise and 47.5 s counterclockwise
+- Lap length about 645 m (derived from the assumed width, not measured)
 - Corners are numbered in driving order from the start/finish on the long straight
+- Model lap about 47.4 s clockwise and 47.5 s counterclockwise (best case), about 49 km/h average, so a realistic target is roughly 48 to 52 s. The page shows how the estimate moves when each assumption changes: track width 6 or 8 m gives 43.4 or 51.5 s, top speed 15% lower or higher gives 50.1 or 46.6 s, grip 10% lower or higher gives 49.1 or 46.1 s, acceleration 25% lower or higher gives 48.4 or 46.9 s (clockwise line)
 - Switching direction re-solves the racing line, speed profile, braking zones, corner numbering and entry/exit. The line differs between directions by up to about 1.5 m. The centerline and track edges are physical, so they do not change
 
 ## Assumptions
@@ -36,7 +37,7 @@ Speeds and the model lap time compare corners and directions with each other. Th
 ## Layout
 
 - `index.html`: the interactive page
-- `data/analysis.json`: shared track geometry plus, for each direction (`cw`, `ccw`), the racing line points and speeds, the corner list with entry, apex, exit, radius and braking data, and the model lap time (pixel coordinates of the cropped satellite image)
+- `data/analysis.json`: shared track geometry plus, for each direction (`cw`, `ccw`), the racing line points and speeds, the corner list with entry, apex, exit, radius and braking data, the model lap time and its sensitivity to each assumption (pixel coordinates of the cropped satellite image)
 - `inputs/`: the satellite image and the AI-generated etched outline used as a style reference (it does not line up geometrically with the satellite, so it was not used for tracing)
 - `pipeline/`: the scripts that produced everything
 
@@ -49,7 +50,7 @@ Paths in the scripts point at the original working folder, so edit the input and
 3. `center2.py`: centerline from hand-placed waypoints, snapped to the ridge of the mask
 4. `edges.py`: left and right track edges from brightness gradients
 5. `line.py`: smoothest (minimum-curvature) racing line within the edges
-6. `directions.py`: for each direction, refine that line to minimise a quasi-steady-state lap time, then compute curvature, speeds, corner detection and per-corner data. Writes `analysis.json`
+6. `directions.py`: for each direction, refine that line to minimise a quasi-steady-state lap time, then compute curvature, speeds, corner detection and per-corner data. Also computes the lap time sensitivity. Writes `analysis.json`
 7. `build_page.py`: crop the satellite image and embed it with `analysis.json` into `page_tpl.html`, producing `index.html`
 
 To change an assumption such as kart top speed, grip, braking, acceleration or track width, edit the constants at the top of `directions.py` and rerun steps 6 and 7.

@@ -69,6 +69,22 @@ def optimise(D,M=150,iters=50):
     print('  smooth-line lap %.3fs -> refined %.3fs  (%.1fs, %d it)'%(T0,T1,time.time()-t0,r.nit),flush=True)
     return a_of(r.x),T0,T1
 
+def sensitivity(P):
+    """Model lap time with each assumption changed, line held fixed."""
+    g=globals(); orig={k:g[k] for k in ('ALAT','VMAX','AACC','SC')}
+    def run(**kw):
+        for k,f in kw.items(): g[k]=orig[k]*f
+        t=speed(P)[3]
+        for k in orig: g[k]=orig[k]
+        return round(t,1)
+    vk=orig['VMAX']*3.6
+    return [
+        dict(item='Track width',lo=dict(label='6 m',t=run(SC=6/7)),hi=dict(label='8 m',t=run(SC=8/7))),
+        dict(item='Kart top speed',lo=dict(label='%d km/h'%round(vk*0.85),t=run(VMAX=0.85)),hi=dict(label='%d km/h'%round(vk*1.15),t=run(VMAX=1.15))),
+        dict(item='Cornering grip',lo=dict(label='10% lower',t=run(ALAT=0.9)),hi=dict(label='10% higher',t=run(ALAT=1.1))),
+        dict(item='Acceleration',lo=dict(label='25% lower',t=run(AACC=0.75)),hi=dict(label='25% higher',t=run(AACC=1.25))),
+    ]
+
 def tick(C,h,i):
     t=C[(i+1)%n]-C[(i-1)%n]; t/=np.linalg.norm(t); nn=np.array([-t[1],t[0]])
     p1=C[i]+nn*h[i]; p2=C[i]-nn*h[i]
@@ -160,7 +176,7 @@ if __name__=='__main__':
     for rev in (False,True):
         D=dirdata(rev); print('reverse' if rev else 'forward',flush=True)
         a,T0,T1=optimise(D)
-        R=analyse(D,a,x0,y0); R['T0']=round(T0,1)
+        R=analyse(D,a,x0,y0); R['T0']=round(T0,1); R['sens']=sensitivity(R['P'])
         key='cw' if R['net']>0 else 'ccw'
         print('  net turning %.0f deg -> %s ; %d corners (%dR %dL) lap %.1fs'%(math.degrees(R['net']),key,len(R['corners']),R['nR'],R['nL'],R['lapS']),flush=True)
         np.savez('dir_%s.npz'%key,P=R.pop('P'),v=R.pop('v'),a=a)

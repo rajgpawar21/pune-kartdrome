@@ -64,6 +64,10 @@ svg#map{width:100%;height:auto;display:block;border-radius:3px;background:var(--
 .assume h2{font:700 20px/1 var(--f-display);letter-spacing:.06em;text-transform:uppercase;margin:0}
 .lead{margin:0;font-size:13.5px;color:var(--muted);max-width:90ch}
 .tbl{overflow-x:auto}
+.lapgrid{display:flex;gap:12px 36px;flex-wrap:wrap}
+.lapgrid .stat b{font-size:40px}
+.lap td.num2{font-family:var(--f-mono);font-size:12.5px;font-variant-numeric:tabular-nums;white-space:nowrap}
+.lap .dl{color:var(--muted)}
 .assume table{border-collapse:collapse;width:100%;min-width:560px;font-size:13.5px}
 .assume th{text-align:left;font-size:11px;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);font-weight:600;padding:6px 12px 6px 0;border-bottom:1px solid var(--line)}
 .assume td{padding:8px 12px 8px 0;border-bottom:1px solid var(--line);vertical-align:top}
@@ -111,6 +115,21 @@ svg text{font-family:var(--f-display);font-weight:700}
       <div class="detail" id="detail" hidden></div>
     </aside>
   </div>
+
+  <section class="assume lap" aria-label="Lap time estimate">
+    <h2>Lap time estimate</h2>
+    <div class="lapgrid">
+      <div class="stat"><b id="lap-t"></b><span>Model lap, best case</span></div>
+      <div class="stat"><b id="lap-v"></b><span>Average speed</span></div>
+      <div class="stat"><b id="lap-r"></b><span>Realistic target</span></div>
+    </div>
+    <p class="lead">The model lap is a perfect flying lap on the modelled line, with no traffic, no mistakes and no tyre or surface effects. The realistic target allows 1 to 10 percent over that, which is a rule of thumb and not a model output.</p>
+    <div class="tbl"><table>
+      <thead><tr><th>Assumption changed</th><th>Lower</th><th>Higher</th></tr></thead>
+      <tbody id="sens"></tbody>
+    </table></div>
+    <p class="lead">Each row changes one assumption and holds everything else, including the line, fixed. Track width moves the result most because it sets the scale of every distance. A real lap length or width from you would tighten the whole estimate.</p>
+  </section>
 
   <section class="assume" aria-label="Assumptions">
     <h2>Assumptions</h2>
@@ -179,6 +198,12 @@ function renderDir(){
   $('#g-badges').innerHTML=bd;
   $('#stats').innerHTML=`<div class="stat"><b>${D.lenM} m</b><span>Lap length</span></div><div class="stat"><b>${D.lapS.toFixed(1)} s</b><span>Model lap</span></div><div class="stat"><b>${D.corners.length}</b><span>Corners</span></div><div class="stat"><b>${D.nR}R · ${D.nL}L</b><span>Rights · lefts</span></div>`;
   $('#len').textContent=D.lenM;
+  const avg=(D.lenM/D.lapS*3.6);
+  $('#lap-t').textContent=D.lapS.toFixed(1)+' s';
+  $('#lap-v').textContent=Math.round(avg)+' km/h';
+  $('#lap-r').textContent=Math.round(D.lapS*1.01)+'–'+Math.round(D.lapS*1.10)+' s';
+  const cell=(o)=>{const d=o.t-D.lapS;return `<td class="num2">${o.label} · ${o.t.toFixed(1)} s <span class="dl">(${d>0?'+':'−'}${Math.abs(d).toFixed(1)})</span></td>`};
+  $('#sens').innerHTML=D.sens.map(r=>`<tr><td>${r.item}</td>${cell(r.lo)}${cell(r.hi)}</tr>`).join('');
   rows.innerHTML=D.corners.map(c=>`<button class="row" data-id="${c.id}"><span class="num">${c.id}</span><span class="t1">${c.dir==='R'?'Right':'Left'} <i>· ${c.type.toLowerCase()}</i></span><span class="spd">${c.va}<small>km/h apex</small></span><span class="t2">R ≈ ${c.r} m · ${c.deg}° · ${c.brk.toLowerCase()}</span></button>`).join('');
   show(null);detail(null);
 }
