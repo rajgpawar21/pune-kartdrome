@@ -1,0 +1,228 @@
+<title>Pune Kartdrome Racing Line</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600&family=JetBrains+Mono:wght@500&display=swap">
+<style>
+/* Layout: timing-screen style. Map left, corner sheet right; stacks on phones. */
+:root{
+  --bg:#eceff1; --surface:#f8f9fa; --ink:#1b2227; --muted:#5b6972; --line:#cdd5da;
+  --accent:#e4572e; --sketch:#27313a; --fill:#dfe5e9; --halo:#ffffff; --badge:#1b2227; --badge-ink:#ffffff;
+  --f-display:'Barlow Condensed','Arial Narrow',sans-serif; --f-body:'Barlow',system-ui,sans-serif; --f-mono:'JetBrains Mono',ui-monospace,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#111619; --surface:#192024; --ink:#e7ecef; --muted:#94a1a9; --line:#2b353b;
+  --accent:#ff7a4d; --sketch:#cdd7dc; --fill:#222b30; --halo:#111619; --badge:#e7ecef; --badge-ink:#111619; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#111619; --surface:#192024; --ink:#e7ecef; --muted:#94a1a9; --line:#2b353b;
+  --accent:#ff7a4d; --sketch:#cdd7dc; --fill:#222b30; --halo:#111619; --badge:#e7ecef; --badge-ink:#111619; color-scheme:dark}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{background:var(--bg);color:var(--ink);font:400 15px/1.5 var(--f-body);padding-block:20px 32px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.wrap{max-width:1320px;margin:0 auto;display:flex;flex-direction:column;gap:18px}
+header{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:12px 28px}
+h1{font:700 clamp(30px,5vw,46px)/1 var(--f-display);letter-spacing:.01em;text-transform:uppercase;margin:0;text-wrap:balance}
+.sub{margin:6px 0 0;color:var(--muted);max-width:56ch}
+.stats{display:flex;gap:22px;flex-wrap:wrap}
+.stat{display:flex;flex-direction:column}
+.stat b{font:600 28px/1 var(--f-display);font-variant-numeric:tabular-nums}
+.stat span{font-size:11px;letter-spacing:.09em;text-transform:uppercase;color:var(--muted)}
+.grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,380px);gap:18px;align-items:start}
+@media (max-width:1000px){.grid{grid-template-columns:minmax(0,1fr)}}
+.mapcard{background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:12px;display:flex;flex-direction:column;gap:10px;min-width:0}
+.controls{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;font-size:13px}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:5px;overflow:hidden}
+.seg label{padding:5px 12px;cursor:pointer;color:var(--muted);user-select:none}
+.seg input{position:absolute;opacity:0;pointer-events:none}
+.seg label:has(input:checked){background:var(--ink);color:var(--bg)}
+.seg label:has(input:focus-visible){outline:2px solid var(--accent);outline-offset:-2px}
+.chk{display:inline-flex;gap:6px;align-items:center;cursor:pointer;color:var(--muted)}
+.chk input{accent-color:var(--accent);width:15px;height:15px}
+svg#map{width:100%;height:auto;display:block;border-radius:3px;background:var(--surface)}
+.legend{display:flex;align-items:center;gap:10px;font-size:12px;color:var(--muted);flex-wrap:wrap}
+.ramp{height:8px;width:160px;border-radius:4px;background:linear-gradient(90deg,#e4572e,#f0b429 50%,#2aa198)}
+.sheet{background:var(--surface);border:1px solid var(--line);border-radius:6px;min-width:0}
+.sheet h2{font:700 20px/1 var(--f-display);letter-spacing:.06em;text-transform:uppercase;margin:0;padding:14px 14px 10px}
+.rows{display:flex;flex-direction:column}
+.row{display:grid;grid-template-columns:34px 1fr auto;gap:2px 12px;align-items:center;text-align:left;width:100%;background:none;border:0;border-top:1px solid var(--line);padding:9px 14px;color:inherit;font:inherit;cursor:pointer}
+.row:hover,.row.on{background:var(--fill)}
+.row:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+.num{width:30px;height:30px;border-radius:50%;background:var(--badge);color:var(--badge-ink);display:grid;place-items:center;font:700 15px/1 var(--f-display);grid-row:span 2}
+.row.on .num{background:var(--accent);color:#fff}
+.t1{font-weight:600}
+.t1 i{font-style:normal;color:var(--muted);font-weight:400}
+.t2{font-size:12.5px;color:var(--muted)}
+.spd{font:500 14px var(--f-mono);font-variant-numeric:tabular-nums;grid-row:span 2;text-align:right}
+.spd small{display:block;font:400 10px var(--f-body);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.detail{border-top:1px solid var(--line);padding:14px;display:flex;flex-direction:column;gap:10px}
+.detail h3{font:700 18px/1 var(--f-display);letter-spacing:.05em;text-transform:uppercase;margin:0}
+.lane{display:grid;grid-template-columns:54px 1fr;gap:10px;align-items:center;font-size:13px}
+.bar{position:relative;height:14px;border-radius:3px;background:var(--fill);border:1px solid var(--line)}
+.bar::before{content:"";position:absolute;left:50%;top:2px;bottom:2px;width:1px;background:var(--line)}
+.dot{position:absolute;top:50%;width:12px;height:12px;border-radius:50%;background:var(--accent);transform:translate(-50%,-50%);border:2px solid var(--surface)}
+.axis{display:grid;grid-template-columns:54px 1fr;gap:10px;font-size:11px;color:var(--muted);letter-spacing:.06em;text-transform:uppercase}
+.axis div{display:flex;justify-content:space-between}
+.assume{background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:14px;display:flex;flex-direction:column;gap:10px;min-width:0}
+.assume h2{font:700 20px/1 var(--f-display);letter-spacing:.06em;text-transform:uppercase;margin:0}
+.lead{margin:0;font-size:13.5px;color:var(--muted);max-width:90ch}
+.tbl{overflow-x:auto}
+.assume table{border-collapse:collapse;width:100%;min-width:560px;font-size:13.5px}
+.assume th{text-align:left;font-size:11px;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);font-weight:600;padding:6px 12px 6px 0;border-bottom:1px solid var(--line)}
+.assume td{padding:8px 12px 8px 0;border-bottom:1px solid var(--line);vertical-align:top}
+.assume td:first-child{font-weight:600;white-space:nowrap}
+.assume td:nth-child(2){font-family:var(--f-mono);font-size:12.5px;font-variant-numeric:tabular-nums}
+.assume tr:last-child td{border-bottom:0}
+.note{font-size:13px;color:var(--muted);max-width:90ch}
+.note ul{margin:6px 0 0;padding-left:18px;display:flex;flex-direction:column;gap:3px}
+.note b{color:var(--ink);font-weight:600}
+svg text{font-family:var(--f-display);font-weight:700}
+@media (prefers-reduced-motion:no-preference){.row{transition:background .12s}}
+</style>
+
+<div class="wrap">
+  <header>
+    <div>
+      <h1>Pune Kartdrome</h1>
+      <p class="sub">Traced from the satellite image, with the minimum-curvature racing line through all 13 corners.</p>
+    </div>
+    <div class="stats" id="stats"></div>
+  </header>
+
+  <div class="grid">
+    <section class="mapcard" aria-label="Track map">
+      <div class="controls">
+        <div class="seg" role="radiogroup" aria-label="Background">
+          <label><input type="radio" name="bg" value="sketch" checked>Sketch</label>
+          <label><input type="radio" name="bg" value="sat">Satellite</label>
+        </div>
+        <label class="chk"><input type="checkbox" id="c-line" checked>Racing line</label>
+        <label class="chk"><input type="checkbox" id="c-center">Centerline</label>
+        <label class="chk"><input type="checkbox" id="c-badges" checked>Corner numbers</label>
+      </div>
+      <svg id="map" role="img" aria-label="Map of the track with racing line and numbered corners"></svg>
+      <div class="legend"><span>Estimated speed</span><span>slow</span><div class="ramp"></div><span>fast</span><span style="margin-left:auto">Start/finish marked with a chequered bar. Pick a corner to see turn-in, apex, exit and braking.</span></div>
+    </section>
+
+    <aside class="sheet" aria-label="Corner sheet">
+      <h2>Corner sheet</h2>
+      <div class="rows" id="rows"></div>
+      <div class="detail" id="detail" hidden></div>
+    </aside>
+  </div>
+
+  <section class="assume" aria-label="Assumptions">
+    <h2>Assumptions</h2>
+    <p class="lead">The satellite image has no scale and nothing is known about the kart, so these values are estimates. Replace any of them with real figures and the speeds, braking and distances change with them.</p>
+    <div class="tbl"><table>
+      <thead><tr><th>Item</th><th>Value used</th><th>What it affects</th></tr></thead>
+      <tbody>
+        <tr><td>Track width</td><td>7 m (about 59 px, so 0.118 m per pixel)</td><td>Every distance and corner radius</td></tr>
+        <tr><td>Lap length</td><td><span id="len"></span> m, derived from the width</td><td>Not measured on site</td></tr>
+        <tr><td>Kart top speed</td><td>61 km/h (17 m/s)</td><td>Speed on the straights</td></tr>
+        <tr><td>Cornering grip</td><td>1.1 g (11 m/s²)</td><td>Speed through each corner</td></tr>
+        <tr><td>Braking</td><td>0.9 g (9 m/s²)</td><td>Brake zone length and speed lost</td></tr>
+        <tr><td>Acceleration</td><td>4 m/s²</td><td>Speed leaving each corner</td></tr>
+        <tr><td>Kart and driver weight</td><td>Not used</td><td>The grip, braking and acceleration figures above stand in for it</td></tr>
+        <tr><td>Edge margin</td><td>0.9 m kept clear of each edge</td><td>How wide the line can run</td></tr>
+        <tr><td>Direction of travel</td><td>Start/finish on the long straight, heading south</td><td>Corner numbering and which side is entry or exit. The line itself is the same in reverse</td></tr>
+        <tr><td>Line goal</td><td>Smoothest path, not fastest lap time</td><td>Close to the fastest line on a grippy surface, but it ignores kart-specific behaviour</td></tr>
+      </tbody>
+    </table></div>
+    <p class="lead">Speeds are useful for comparing corners with each other, not as lap targets. Track edges were detected from image brightness, so the width varies by a pixel or two along the lap.</p>
+  </section>
+</div>
+
+<script>
+const D=__DATA__;
+const IMG=__IMG__;
+const NS='http://www.w3.org/2000/svg';
+const $=s=>document.querySelector(s);
+const svg=$('#map');
+svg.setAttribute('viewBox',`0 0 ${D.W} ${D.H}`);
+const vmin=Math.min(...D.rv), vmax=Math.max(...D.rv);
+function col(v){const t=(v-vmin)/(vmax-vmin||1);const A=[228,87,46],B=[240,180,41],Cc=[42,161,152];
+  const m=t<.5?[A,B,t*2]:[B,Cc,(t-.5)*2];return 'rgb('+[0,1,2].map(i=>Math.round(m[0][i]+(m[1][i]-m[0][i])*m[2])).join(',')+')'}
+const f1=x=>x.toFixed(1);
+function poly(pts,close){return 'M'+pts.map(p=>f1(p[0])+' '+f1(p[1])).join('L')+(close?'Z':'')}
+const n=D.cx.length;
+function offsetLine(o){const pts=[];for(let i=0;i<n;i++){const k=typeof o==='function'?o(i):o*D.hh[i];pts.push([D.cx[i]+D.nx[i]*k,D.cy[i]+D.ny[i]*k])}return pts}
+let h='';
+// satellite
+h+=`<g id="g-sat" hidden><image href="${IMG}" x="0" y="0" width="${D.W}" height="${D.H}"/></g>`;
+// sketch
+let sk='';
+const L=offsetLine(1),R=offsetLine(-1);
+sk+=`<path d="${poly(L,1)}${poly(R,1)}" fill="var(--fill)" fill-rule="evenodd" stroke="none"/>`;
+for(let k=4;k>=1;k--){const op=.5-.1*k+.1;
+  for(const s of [1,-1]){sk+=`<path d="${poly(offsetLine(i=>s*(D.hh[i]+k*7)),1)}" fill="none" stroke="var(--sketch)" stroke-width="1.2" opacity="${(.62-k*.13).toFixed(2)}" stroke-linejoin="round"/>`}}
+for(let j=-6;j<=6;j++){if(Math.abs(j)===6)continue;sk+=`<path d="${poly(offsetLine(j/6),1)}" fill="none" stroke="var(--sketch)" stroke-width="1.1" opacity=".5" stroke-linejoin="round"/>`}
+sk+=`<path d="${poly(L,1)}" fill="none" stroke="var(--sketch)" stroke-width="3.4" stroke-linejoin="round"/><path d="${poly(R,1)}" fill="none" stroke="var(--sketch)" stroke-width="3.4" stroke-linejoin="round"/>`;
+h+=`<g id="g-sketch">${sk}</g>`;
+// centerline
+h+=`<g id="g-center" hidden><path d="${poly(D.cx.map((x,i)=>[x,D.cy[i]]),1)}" fill="none" stroke="var(--ink)" stroke-width="1.6" stroke-dasharray="7 6" opacity=".8"/></g>`;
+// racing line
+const m=D.rx.length, RP=D.rx.map((x,i)=>[x,D.ry[i]]);
+let rl=`<path d="${poly(RP,1)}" fill="none" stroke="var(--halo)" stroke-width="9" stroke-linejoin="round" opacity=".85"/>`;
+rl+=`<g id="g-hi"></g>`;
+for(let i=0;i<m;i++){const a=RP[i],b=RP[(i+1)%m];rl+=`<line x1="${a[0]}" y1="${a[1]}" x2="${b[0]}" y2="${b[1]}" stroke="${col((D.rv[i]+D.rv[(i+1)%m])/2)}" stroke-width="5" stroke-linecap="round"/>`}
+// direction chevrons
+for(let i=14;i<m;i+=58){const a=RP[(i-2+m)%m],b=RP[(i+2)%m];const ang=Math.atan2(b[1]-a[1],b[0]-a[0])*180/Math.PI;
+  rl+=`<path d="M-5 -5L3 0L-5 5" transform="translate(${RP[i][0]} ${RP[i][1]}) rotate(${ang})" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" opacity=".9"/>`}
+h+=`<g id="g-line">${rl}</g>`;
+// start/finish
+const t=D.sfTick;h+=`<g><line x1="${t[0]}" y1="${t[1]}" x2="${t[2]}" y2="${t[3]}" stroke="var(--halo)" stroke-width="9"/><line x1="${t[0]}" y1="${t[1]}" x2="${t[2]}" y2="${t[3]}" stroke="var(--ink)" stroke-width="6" stroke-dasharray="5 5"/><text x="${D.sf[0]+44}" y="${D.sf[1]+5}" fill="var(--ink)" font-size="18" paint-order="stroke" stroke="var(--halo)" stroke-width="4" letter-spacing="1">S/F</text></g>`;
+// selection layer + badges
+h+=`<g id="g-sel"></g>`;
+let bd='';
+for(const c of D.corners){bd+=`<g class="bd" data-id="${c.id}" style="cursor:pointer"><circle cx="${c.badge[0]}" cy="${c.badge[1]}" r="15" fill="var(--badge)" stroke="var(--halo)" stroke-width="3"/><text x="${c.badge[0]}" y="${c.badge[1]+6}" text-anchor="middle" font-size="18" fill="var(--badge-ink)">${c.id}</text></g>`}
+h+=`<g id="g-badges">${bd}</g>`;
+svg.innerHTML=h;
+
+// stats
+const nR=D.corners.filter(c=>c.dir==='R').length,nL=D.corners.length-nR;
+$('#stats').innerHTML=`<div class="stat"><b>${D.lenM} m</b><span>Lap length</span></div><div class="stat"><b>${D.corners.length}</b><span>Corners</span></div><div class="stat"><b>${nR}R · ${nL}L</b><span>Rights · lefts</span></div><div class="stat"><b>${D.widthM} m</b><span>Width (assumed)</span></div>`;
+$('#len').textContent=D.lenM;
+
+// sheet
+const rows=$('#rows');
+rows.innerHTML=D.corners.map(c=>`<button class="row" data-id="${c.id}"><span class="num">${c.id}</span><span class="t1">${c.dir==='R'?'Right':'Left'} <i>· ${c.type.toLowerCase()}</i></span><span class="spd">${c.va}<small>km/h apex</small></span><span class="t2">R ≈ ${c.r} m · ${c.deg}° · ${c.brk.toLowerCase()}</span></button>`).join('');
+let sel=null,prev=null;
+function show(id){
+  const g=$('#g-sel');g.innerHTML='';
+  document.querySelectorAll('.row').forEach(r=>r.classList.toggle('on',+r.dataset.id===sel));
+  if(!id)return;
+  const c=D.corners.find(c=>c.id===id);
+  let s='';
+  const seg=[];for(let i=c.i0;i<=c.i1;i++)seg.push(RP[i%m]);
+  s+=`<path d="${poly(seg,0)}" fill="none" stroke="var(--accent)" stroke-width="14" stroke-linecap="round" stroke-linejoin="round" opacity=".55"/>`;
+  function tk(T,lab,color,dash,dx,dy){if(!T)return'';const cx=(T[0]+T[2])/2,cy=(T[1]+T[3])/2;
+    return `<line x1="${T[0]}" y1="${T[1]}" x2="${T[2]}" y2="${T[3]}" stroke="var(--halo)" stroke-width="7"/><line x1="${T[0]}" y1="${T[1]}" x2="${T[2]}" y2="${T[3]}" stroke="${color}" stroke-width="3.5" ${dash?'stroke-dasharray="6 4"':''}/><text x="${T[2]+dx}" y="${T[3]+dy}" font-size="15" fill="var(--ink)" paint-order="stroke" stroke="var(--halo)" stroke-width="4" letter-spacing=".5">${lab}</text>`}
+  s+=tk(c.tBrake,'BRAKE','#e03131',0,6,-6)+tk(c.tTurn,'TURN-IN','var(--ink)',1,6,-6)+tk(c.tExit,'EXIT','var(--ink)',1,6,-6);
+  s+=`<circle cx="${c.apexPos[0]}" cy="${c.apexPos[1]}" r="8" fill="var(--accent)" stroke="var(--halo)" stroke-width="3"/><text x="${c.apexPos[0]+12}" y="${c.apexPos[1]-12}" font-size="15" fill="var(--ink)" paint-order="stroke" stroke="var(--halo)" stroke-width="4" letter-spacing=".5">APEX</text>`;
+  g.innerHTML=s;
+}
+function detail(id){
+  const el=$('#detail');if(!id){el.hidden=true;return}
+  const c=D.corners.find(c=>c.id===id);
+  const pos=v=>(Math.max(-1,Math.min(1,v))+1)/2*100;
+  const lane=(lbl,v)=>`<div class="lane"><span>${lbl}</span><div class="bar"><i class="dot" style="left:${pos(v)}%"></i></div></div>`;
+  const brk=c.brk==='Lift'?'Lift only. No real braking needed.':`${c.brk}, losing about ${c.drop} km/h.`;
+  el.innerHTML=`<h3>Corner ${c.id} · ${c.dir==='R'?'Right':'Left'} ${c.type.toLowerCase()}</h3>
+  <div class="axis"><span></span><div><span>Outside</span><span>Inside</span></div></div>
+  ${lane('Turn-in',c.sIn)}${lane('Apex',c.sAp)}${lane('Exit',c.sOut)}
+  <div class="t2">${brk} The apex comes ${c.apexAt==='mid'?'in the middle':c.apexAt} of a ${c.arc} m arc that turns ${c.deg}°, with a minimum radius near ${c.r} m.</div>`;
+  el.hidden=false;
+}
+function pick(id){sel=(sel===id)?null:id;show(sel);detail(sel)}
+rows.addEventListener('click',e=>{const b=e.target.closest('.row');if(b)pick(+b.dataset.id)});
+rows.addEventListener('mouseover',e=>{const b=e.target.closest('.row');if(b&&!sel)show(+b.dataset.id)});
+rows.addEventListener('mouseleave',()=>{if(!sel)show(null)});
+$('#g-badges').addEventListener('click',e=>{const b=e.target.closest('.bd');if(b)pick(+b.dataset.id)});
+
+// controls
+function setHidden(sel,on){const e=$(sel);if(e)e.toggleAttribute('hidden',on)}
+function apply(){
+  const bg=document.querySelector('input[name=bg]:checked').value;
+  setHidden('#g-sat',bg!=='sat');setHidden('#g-sketch',bg!=='sketch');
+  setHidden('#g-line',!$('#c-line').checked);setHidden('#g-center',!$('#c-center').checked);setHidden('#g-badges',!$('#c-badges').checked);
+}
+document.querySelectorAll('.controls input').forEach(i=>i.addEventListener('change',apply));apply();
+</script>
